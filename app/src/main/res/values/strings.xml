@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">Wise4Chess</string>
+
+    <string name="nav_play">Play</string>
+    <string name="nav_puzzles">Puzzles</string>
+    <string name="nav_learn">Learn</string>
+    <string name="nav_analysis">Analysis</string>
+    <string name="nav_more">More</string>
+
+    <string name="play_placeholder">Games against bots and friends on one device will be here.</string>
+    <string name="puzzles_placeholder">Rated tactics puzzles will be here.</string>
+    <string name="learn_placeholder">Openings with spaced repetition will be here.</string>
+    <string name="analysis_placeholder">The analysis board and game review will be here.</string>
+    <string name="more_placeholder">The game library and settings will be here.</string>
+</resources>

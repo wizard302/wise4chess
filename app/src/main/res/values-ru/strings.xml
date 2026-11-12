@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_play">Играть</string>
+    <string name="nav_puzzles">Задачи</string>
+    <string name="nav_learn">Обучение</string>
+    <string name="nav_analysis">Анализ</string>
+    <string name="nav_more">Ещё</string>
+
+    <string name="play_placeholder">Здесь будет игра с ботами и вдвоём на одном устройстве.</string>
+    <string name="puzzles_placeholder">Здесь будут тактические задачи по рейтингу.</string>
+    <string name="learn_placeholder">Здесь будет изучение дебютов с интервальным повторением.</string>
+    <string name="analysis_placeholder">Здесь будут доска анализа и разбор партий.</string>
+    <string name="more_placeholder">Здесь будут база партий и настройки.</string>
+</resources>

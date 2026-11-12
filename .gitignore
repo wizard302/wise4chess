@@ -1,0 +1,16 @@
+*.jks
+*.keystore
+keystore.properties
+*.iml
+.gradle
+.kotlin
+local.properties
+/.idea
+.DS_Store
+build/
+/captures
+.externalNativeBuild
+.cxx
+
+# Local development notes / agent instructions — kept out of the public repo.
+/CLAUDE.md

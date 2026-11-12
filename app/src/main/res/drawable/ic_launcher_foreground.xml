@@ -1,0 +1,10 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- A pawn, kept inside the 66dp adaptive-icon safe zone. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,29a9.5,9.5 0,1 1,0 19a9.5,9.5 0,1 1,0 -19zM43,49h22v5h-22zM48,54h12l6,20h-24zM37,74h34v8h-34z" />
+</vector>

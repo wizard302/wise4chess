@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- Lint asks to rename this folder to mipmap-anydpi because minSdk is 26, but resource
+         linking then fails to find mipmap/ic_launcher (AGP 9.5.1), so the qualifier stays. -->
+    <issue id="ObsoleteSdkInt">
+        <ignore path="src/main/res/mipmap-anydpi-v26" />
+    </issue>
+</lint>
