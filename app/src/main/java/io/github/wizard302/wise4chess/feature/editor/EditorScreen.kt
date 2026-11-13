@@ -29,6 +29,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -60,6 +61,7 @@ import io.github.wizard302.wise4chess.core.ui.R as UiR
 import io.github.wizard302.wise4chess.core.ui.board.PieceBackdrop
 import io.github.wizard302.wise4chess.core.ui.board.SetupBoard
 import io.github.wizard302.wise4chess.core.ui.board.pieceDrawable
+import io.github.wizard302.wise4chess.feature.play.BotGameSetupSheet
 import io.github.wizard302.wise4chess.feature.play.GameSetup
 import io.github.wizard302.wise4chess.feature.play.LocalGameSetupSheet
 import kotlinx.coroutines.launch
@@ -77,6 +79,7 @@ fun EditorScreen(onClose: () -> Unit, onPlay: (GameSetup) -> Unit, viewModel: Ed
     val scope = rememberCoroutineScope()
     var menuOpen by remember { mutableStateOf(false) }
     var setupOpen by rememberSaveable { mutableStateOf(false) }
+    var botSetupOpen by rememberSaveable { mutableStateOf(false) }
     val copiedMessage = stringResource(R.string.editor_fen_copied)
     val invalidMessage = stringResource(R.string.editor_fen_invalid)
 
@@ -192,12 +195,22 @@ fun EditorScreen(onClose: () -> Unit, onPlay: (GameSetup) -> Unit, viewModel: Ed
                     )
                 }
                 Spacer(Modifier.height(4.dp))
-                Button(
-                    onClick = { setupOpen = true },
-                    enabled = state.position != null,
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                ) {
-                    Text(stringResource(R.string.editor_play_from_here), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.editor_play_from_here), style = MaterialTheme.typography.labelLarge)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        onClick = { botSetupOpen = true },
+                        enabled = state.position != null,
+                        modifier = Modifier.weight(1f).height(52.dp),
+                    ) {
+                        Text(stringResource(R.string.editor_against_computer))
+                    }
+                    OutlinedButton(
+                        onClick = { setupOpen = true },
+                        enabled = state.position != null,
+                        modifier = Modifier.weight(1f).height(52.dp),
+                    ) {
+                        Text(stringResource(R.string.editor_two_players))
+                    }
                 }
             }
         }
@@ -208,6 +221,16 @@ fun EditorScreen(onClose: () -> Unit, onPlay: (GameSetup) -> Unit, viewModel: Ed
             onDismiss = { setupOpen = false },
             onStart = {
                 setupOpen = false
+                onPlay(it)
+            },
+            startFen = state.fen,
+        )
+    }
+    if (botSetupOpen) {
+        BotGameSetupSheet(
+            onDismiss = { botSetupOpen = false },
+            onStart = {
+                botSetupOpen = false
                 onPlay(it)
             },
             startFen = state.fen,

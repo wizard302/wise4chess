@@ -21,8 +21,10 @@ import io.github.wizard302.wise4chess.core.ui.board.CHESS_BOARD_TAG
 import io.github.wizard302.wise4chess.core.ui.theme.Wise4ChessTheme
 import io.github.wizard302.wise4chess.feature.editor.EditorScreen
 import io.github.wizard302.wise4chess.feature.play.GameScreen
+import io.github.wizard302.wise4chess.data.SavedGame
 import io.github.wizard302.wise4chess.feature.play.GameSetup
-import io.github.wizard302.wise4chess.feature.play.LocalGameViewModel
+import io.github.wizard302.wise4chess.feature.play.PlayScreen
+import io.github.wizard302.wise4chess.feature.play.GameViewModel
 import io.github.wizard302.wise4chess.feature.play.TimeControl
 import io.github.wizard302.wise4chess.feature.settings.SettingsScreen
 import io.github.wizard302.wise4chess.settings.AppSettings
@@ -53,8 +55,8 @@ class ScreenRenderTest {
         compose.onRoot().captureRoboImage("build/outputs/roborazzi/$name.png")
     }
 
-    private fun game(setup: GameSetup, vararg sans: String): LocalGameViewModel {
-        val viewModel = LocalGameViewModel(setup)
+    private fun game(setup: GameSetup, vararg sans: String): GameViewModel {
+        val viewModel = GameViewModel(setup)
         for (san in sans) viewModel.onMove(viewModel.state.value.position.parseSan(san)!!)
         return viewModel
     }
@@ -92,6 +94,20 @@ class ScreenRenderTest {
     fun editor() = render("editor") { EditorScreen(onClose = {}, onPlay = {}) }
 
     @Test
+    @Config(qualifiers = "ru-w412dp-h915dp-420dpi")
+    fun playSectionOffersToContinueASavedGame() {
+        val saved = SavedGame(startFen = "start", moves = List(23) { "e2e4" }, botGame = true, botElo = 1500)
+        var resumed = false
+        compose.setContent {
+            Wise4ChessTheme { PlayScreen(onStartGame = {}, onOpenEditor = {}, savedGame = saved, onResume = { resumed = true }) }
+        }
+        compose.onNodeWithText("Против компьютера · ход 12").assertExists()
+        compose.onRoot().captureRoboImage("build/outputs/roborazzi/play_continue_ru.png")
+        compose.onNodeWithText("Продолжить партию").performClick()
+        assertEquals(true, resumed)
+    }
+
+    @Test
     fun newGameSheetOpensFromThePlaySection() {
         compose.setContent { Wise4ChessTheme { Wise4ChessApp() } }
         compose.onNodeWithText("Two players").performClick()
@@ -114,7 +130,7 @@ class ScreenRenderTest {
 
     @Test
     fun movesCanBeMadeByTappingAndByDragging() {
-        val viewModel = LocalGameViewModel(GameSetup())
+        val viewModel = GameViewModel(GameSetup())
         compose.setContent { Wise4ChessTheme { GameScreen(viewModel, onClose = {}) } }
 
         tap("e2")
@@ -145,7 +161,7 @@ class ScreenRenderTest {
 
     @Test
     fun draggedPieceIsDrawnWithoutDisturbingTheOthers() {
-        val viewModel = LocalGameViewModel(GameSetup())
+        val viewModel = GameViewModel(GameSetup())
         compose.setContent { Wise4ChessTheme { GameScreen(viewModel, onClose = {}) } }
         compose.onNodeWithTag(CHESS_BOARD_TAG).performTouchInput {
             down(at("d2", width))
@@ -161,7 +177,7 @@ class ScreenRenderTest {
 
     @Test
     fun withDraggingSwitchedOffOnlyTapsMovePieces() {
-        val viewModel = LocalGameViewModel(GameSetup())
+        val viewModel = GameViewModel(GameSetup())
         compose.setContent {
             Wise4ChessTheme {
                 CompositionLocalProvider(LocalAppSettings provides AppSettings(dragPieces = false)) {
@@ -190,13 +206,16 @@ class ScreenRenderTest {
         var settings by mutableStateOf(AppSettings())
         compose.setContent {
             Wise4ChessTheme {
-                SettingsScreen(settings, onDragPiecesChange = { settings = settings.copy(dragPieces = it) }, onClose = {})
+                SettingsScreen(settings, onChange = { settings = it }, onClose = {})
             }
         }
         compose.onRoot().captureRoboImage("build/outputs/roborazzi/settings_ru.png")
         compose.onNodeWithText("Перетаскивание фигур").performClick()
         compose.waitForIdle()
         assertEquals(false, settings.dragPieces)
+        compose.onNodeWithText("Полоска оценки").performClick()
+        compose.waitForIdle()
+        assertEquals(AppSettings(dragPieces = false, showEvaluation = true), settings)
     }
 
     @Test
@@ -212,7 +231,7 @@ class ScreenRenderTest {
 
     @Test
     fun promotionAsksForThePiece() {
-        val viewModel = LocalGameViewModel(GameSetup(startFen = "8/P1k5/8/8/8/8/8/4K3 w - - 0 1"))
+        val viewModel = GameViewModel(GameSetup(startFen = "8/P1k5/8/8/8/8/8/4K3 w - - 0 1"))
         compose.setContent { Wise4ChessTheme { GameScreen(viewModel, onClose = {}) } }
         tap("a7")
         tap("a8")
@@ -224,7 +243,7 @@ class ScreenRenderTest {
 
     @Test
     fun castlingByTappingTheKingsTargetAndCancelledPromotion() {
-        val castling = LocalGameViewModel(GameSetup(startFen = "4k3/8/8/8/8/8/8/R3K2R w KQ - 0 1"))
+        val castling = GameViewModel(GameSetup(startFen = "4k3/8/8/8/8/8/8/R3K2R w KQ - 0 1"))
         compose.setContent { Wise4ChessTheme { GameScreen(castling, onClose = {}) } }
         tap("e1")
         tap("h1") // in standard chess a tap on the rook selects the rook, it does not castle

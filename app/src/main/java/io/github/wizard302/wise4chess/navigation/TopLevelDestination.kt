@@ -12,14 +12,23 @@ import kotlinx.serialization.Serializable
 @Serializable data object AnalysisRoute
 @Serializable data object MoreRoute
 
-/** A two-player game on this device. [minutes] of 0 means no clock. */
+/**
+ * A game on this device. [minutes] of 0 means no clock. With [botGame] the computer plays
+ * the side opposite to [humanIsWhite] at [botElo], where 0 is its full strength. With [resume]
+ * the stored game in progress is continued and the other fields are ignored.
+ */
 @Serializable
-data class LocalGameRoute(
+data class GameRoute(
     val fen: String? = null,
     val chess960: Boolean = false,
     val minutes: Int = 0,
     val incrementSeconds: Int = 0,
     val faceToFace: Boolean = false,
+    val botGame: Boolean = false,
+    val humanIsWhite: Boolean = true,
+    val botElo: Int = 0,
+    val botEngine: String = "STOCKFISH",
+    val resume: Boolean = false,
 )
 
 @Serializable data object EditorRoute

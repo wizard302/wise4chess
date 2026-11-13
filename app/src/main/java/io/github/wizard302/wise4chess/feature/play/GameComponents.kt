@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -88,6 +89,7 @@ fun PlayerBar(
     clockRunning: Boolean,
     toMove: Boolean,
     modifier: Modifier = Modifier,
+    thinking: Boolean = false,
     upsideDown: Boolean = false,
 ) {
     Row(
@@ -114,7 +116,10 @@ fun PlayerBar(
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(name, style = MaterialTheme.typography.titleSmall)
-                if (toMove) {
+                if (thinking) {
+                    Spacer(Modifier.width(8.dp))
+                    CircularProgressIndicator(Modifier.size(12.dp), strokeWidth = 2.dp)
+                } else if (toMove) {
                     Spacer(Modifier.width(8.dp))
                     Box(Modifier.size(8.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary))
                 }

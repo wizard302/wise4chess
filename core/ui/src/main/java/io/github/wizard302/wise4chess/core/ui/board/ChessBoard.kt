@@ -70,6 +70,7 @@ private class BoardMemory(var position: Position) {
  * @param lastMove highlighted on the board, usually the move that led to [position].
  * @param interactive whether the side to move may be moved by the user right now.
  * @param dragEnabled whether pieces can be dragged; tapping a piece and then a square always works.
+ * @param arrows drawn over the pieces, for suggested moves.
  * @param upsideDownSide pieces of this side are drawn rotated by 180°, for two players facing
  *   each other across one device.
  */
@@ -83,6 +84,7 @@ fun ChessBoard(
     interactive: Boolean = true,
     dragEnabled: Boolean = true,
     upsideDownSide: Side? = null,
+    arrows: List<BoardArrow> = emptyList(),
     colors: BoardColors = BoardColors.Green,
     showCoordinates: Boolean = true,
     showLegalMoves: Boolean = true,
@@ -272,6 +274,8 @@ fun ChessBoard(
                 )
             }
         }
+        for (arrow in arrows) drawArrow(arrow, geometry)
+
         if (dragged != null) {
             position.pieceAt(Square(dragged.from))?.let { piece ->
                 // Raised above the finger so the piece stays visible. It keeps its size: a vector

@@ -16,12 +16,13 @@ class SettingsRepositoryTest {
     @Test
     fun settingsDefaultToDraggingOnAndRememberAChange() = runBlocking {
         val repository = SettingsRepository(ApplicationProvider.getApplicationContext<Context>())
-        assertEquals(AppSettings(dragPieces = true), repository.settings.first())
-        repository.setDragPieces(false)
+        assertEquals(AppSettings(dragPieces = true, showEvaluation = false), repository.settings.first())
+        repository.update(AppSettings(dragPieces = false, showEvaluation = true))
+        assertEquals(true, repository.settings.first().showEvaluation)
         assertEquals(false, repository.settings.first().dragPieces)
         // A second repository over the same storage sees the stored value.
         assertEquals(false, SettingsRepository(ApplicationProvider.getApplicationContext<Context>()).settings.first().dragPieces)
-        repository.setDragPieces(true)
-        assertEquals(true, repository.settings.first().dragPieces)
+        repository.update(AppSettings())
+        assertEquals(AppSettings(), repository.settings.first())
     }
 }

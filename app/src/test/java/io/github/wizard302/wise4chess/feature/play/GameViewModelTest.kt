@@ -12,14 +12,14 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** Game flow without a clock (the clock needs Android's time source and a main dispatcher). */
-class LocalGameViewModelTest {
-    private fun LocalGameViewModel.play(vararg sans: String) {
+class GameViewModelTest {
+    private fun GameViewModel.play(vararg sans: String) {
         for (san in sans) onMove(checkNotNull(state.value.position.parseSan(san)) { "illegal $san" })
     }
 
     @Test
     fun movesAreRecordedAndCanBeTakenBack() {
-        val vm = LocalGameViewModel(GameSetup())
+        val vm = GameViewModel(GameSetup())
         assertEquals(Position.START, vm.state.value.position)
         assertFalse(vm.state.value.canTakeBack)
         assertNull(vm.state.value.whiteMillis)
@@ -41,7 +41,7 @@ class LocalGameViewModelTest {
 
     @Test
     fun browsingEarlierPositionsBlocksMovesUntilLiveAgain() {
-        val vm = LocalGameViewModel(GameSetup())
+        val vm = GameViewModel(GameSetup())
         vm.play("d4", "d5", "c4")
         vm.stepBack()
         var state = vm.state.value
@@ -69,7 +69,7 @@ class LocalGameViewModelTest {
 
     @Test
     fun checkmateEndsTheGameAndCanBeTakenBack() {
-        val vm = LocalGameViewModel(GameSetup())
+        val vm = GameViewModel(GameSetup())
         vm.play("f3", "e5", "g4", "Qh4#")
         var state = vm.state.value
         assertEquals(GameEnd(GameResult.BLACK_WINS, EndReason.CHECKMATE), state.end)
@@ -86,7 +86,7 @@ class LocalGameViewModelTest {
 
     @Test
     fun resignationAndAgreedDrawAreFinal() {
-        val resigned = LocalGameViewModel(GameSetup())
+        val resigned = GameViewModel(GameSetup())
         resigned.play("e4")
         resigned.resign() // Black is to move and gives up
         assertEquals(GameEnd(GameResult.WHITE_WINS, EndReason.RESIGNATION), resigned.state.value.end)
@@ -94,7 +94,7 @@ class LocalGameViewModelTest {
         resigned.agreeDraw() // too late
         assertEquals(EndReason.RESIGNATION, resigned.state.value.end!!.reason)
 
-        val drawn = LocalGameViewModel(GameSetup())
+        val drawn = GameViewModel(GameSetup())
         drawn.play("e4", "e5")
         drawn.agreeDraw()
         assertEquals(GameEnd(GameResult.DRAW, EndReason.DRAW_AGREED), drawn.state.value.end)
@@ -108,18 +108,18 @@ class LocalGameViewModelTest {
 
     @Test
     fun stalemateAndFivefoldRepetitionAreDetected() {
-        val stalemate = LocalGameViewModel(GameSetup(startFen = "7k/8/6K1/8/8/8/5Q2/8 w - - 0 1"))
+        val stalemate = GameViewModel(GameSetup(startFen = "7k/8/6K1/8/8/8/5Q2/8 w - - 0 1"))
         stalemate.play("Qf7")
         assertEquals(GameEnd(GameResult.DRAW, EndReason.STALEMATE), stalemate.state.value.end)
 
-        val repetition = LocalGameViewModel(GameSetup())
+        val repetition = GameViewModel(GameSetup())
         repeat(4) { repetition.play("Nf3", "Nf6", "Ng1", "Ng8") }
         assertEquals(GameEnd(GameResult.DRAW, EndReason.FIVEFOLD_REPETITION), repetition.state.value.end)
     }
 
     @Test
     fun customStartPositionSetsMoveNumbering() {
-        val vm = LocalGameViewModel(GameSetup(startFen = "4k3/8/8/8/8/8/8/4K2R b K - 0 23", faceToFace = true))
+        val vm = GameViewModel(GameSetup(startFen = "4k3/8/8/8/8/8/8/4K2R b K - 0 23", faceToFace = true))
         val state = vm.state.value
         assertEquals(23, state.firstMoveNumber)
         assertTrue(state.blackMovesFirst)
@@ -133,7 +133,7 @@ class LocalGameViewModelTest {
 
     @Test
     fun chess960StartsFromAShuffledBackRank() {
-        val state = LocalGameViewModel(GameSetup(chess960 = true)).state.value
+        val state = GameViewModel(GameSetup(chess960 = true)).state.value
         val backRank = (0..7).map { state.position.pieceAt(io.github.wizard302.wise4chess.core.chess.Square(it)) }
         assertEquals(1, backRank.count { it == Piece.WHITE_KING })
         assertEquals(2, backRank.count { it == Piece.WHITE_ROOK })

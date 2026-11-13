@@ -23,7 +23,12 @@ work for this project.
 
 ## Engines and data
 
-None yet.
+| Component | Source | License |
+|---|---|---|
+| Stockfish 19 chess engine, built from the `third_party/stockfish` submodule and shipped as `libstockfish_lite.so` | <https://github.com/official-stockfish/Stockfish> | GPL-3.0-or-later |
+| "Simple mirrored piece square features" patch by sscg13, which lets Stockfish use a small network (`engines/stockfish/patches/lite`) | <https://github.com/lichess-org/stockfish-web/tree/main/patches/sf_19_smallnet> | GPL-3.0-or-later |
+| CuckooChess chess engine by Peter Österlund, with the UCI control code from DroidFish (`engines/cuckoo`, see its README) | <https://github.com/peterosterlund2/droidfish> | GPL-3.0-or-later |
+| Evaluation network `nn-61e7af4bb97d.nnue` (`engines/stockfish/nets`), embedded in the engine binary | <https://tests.stockfishchess.org/nns> | CC0-1.0 |
 
 ## Development tools (not shipped in the app)
 

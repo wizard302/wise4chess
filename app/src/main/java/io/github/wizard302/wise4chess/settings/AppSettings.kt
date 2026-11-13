@@ -17,6 +17,8 @@ import kotlinx.coroutines.flow.map
 data class AppSettings(
     /** Pieces can be moved by dragging; tapping the piece and then the square always works. */
     val dragPieces: Boolean = true,
+    /** A bar beside the board shows the engine's evaluation during a game. */
+    val showEvaluation: Boolean = false,
 )
 
 /** The current settings for any composable that needs them. */
@@ -31,13 +33,22 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     val settings: Flow<AppSettings> = dataStore.data
         // An unreadable file falls back to the defaults instead of breaking the app.
         .catch { error -> if (error is IOException) emit(emptyPreferences()) else throw error }
-        .map { preferences -> AppSettings(dragPieces = preferences[DRAG_PIECES] ?: true) }
+        .map { preferences ->
+            AppSettings(
+                dragPieces = preferences[DRAG_PIECES] ?: true,
+                showEvaluation = preferences[SHOW_EVALUATION] ?: false,
+            )
+        }
 
-    suspend fun setDragPieces(enabled: Boolean) {
-        dataStore.edit { it[DRAG_PIECES] = enabled }
+    suspend fun update(settings: AppSettings) {
+        dataStore.edit {
+            it[DRAG_PIECES] = settings.dragPieces
+            it[SHOW_EVALUATION] = settings.showEvaluation
+        }
     }
 
     private companion object {
         val DRAG_PIECES = booleanPreferencesKey("drag_pieces")
+        val SHOW_EVALUATION = booleanPreferencesKey("show_evaluation")
     }
 }

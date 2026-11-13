@@ -31,7 +31,7 @@ import io.github.wizard302.wise4chess.settings.AppSettings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(settings: AppSettings, onDragPiecesChange: (Boolean) -> Unit, onClose: () -> Unit) {
+fun SettingsScreen(settings: AppSettings, onChange: (AppSettings) -> Unit, onClose: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -45,20 +45,32 @@ fun SettingsScreen(settings: AppSettings, onDragPiecesChange: (Boolean) -> Unit,
         },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())) {
-            Text(
-                stringResource(R.string.settings_board),
-                modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 4.dp),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-            )
+            SectionTitle(stringResource(R.string.settings_board))
             SwitchSetting(
                 title = stringResource(R.string.settings_drag_pieces),
                 description = stringResource(R.string.settings_drag_pieces_description),
                 checked = settings.dragPieces,
-                onChange = onDragPiecesChange,
+                onChange = { onChange(settings.copy(dragPieces = it)) },
+            )
+            SectionTitle(stringResource(R.string.settings_game))
+            SwitchSetting(
+                title = stringResource(R.string.settings_evaluation),
+                description = stringResource(R.string.settings_evaluation_description),
+                checked = settings.showEvaluation,
+                onChange = { onChange(settings.copy(showEvaluation = it)) },
             )
         }
     }
+}
+
+@Composable
+private fun SectionTitle(text: String) {
+    Text(
+        text,
+        modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 4.dp),
+        style = MaterialTheme.typography.labelLarge,
+        color = MaterialTheme.colorScheme.primary,
+    )
 }
 
 /** A setting that is on or off; the whole row toggles it. */

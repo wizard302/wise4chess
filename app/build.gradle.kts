@@ -73,6 +73,11 @@ android {
     buildFeatures {
         compose = true
     }
+    packaging {
+        // Engines are executables shipped as native libraries; they must be unpacked onto
+        // the device to be started as processes.
+        jniLibs.useLegacyPackaging = true
+    }
     testOptions {
         // Android stubs (SystemClock, …) return defaults instead of throwing in JVM unit tests.
         unitTests.isReturnDefaultValues = true
@@ -93,6 +98,8 @@ android {
 dependencies {
     implementation(project(":core:chess"))
     implementation(project(":core:ui"))
+    implementation(project(":engines:cuckoo"))
+    implementation(project(":engines:stockfish"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

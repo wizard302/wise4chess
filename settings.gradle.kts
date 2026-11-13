@@ -25,4 +25,7 @@ dependencyResolutionManagement {
 rootProject.name = "Wise4Chess"
 include(":app")
 include(":core:chess")
+include(":core:engine")
 include(":core:ui")
+include(":engines:cuckoo")
+include(":engines:stockfish")

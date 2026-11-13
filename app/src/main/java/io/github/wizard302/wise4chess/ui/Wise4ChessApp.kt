@@ -30,16 +30,19 @@ import io.github.wizard302.wise4chess.feature.analysis.AnalysisScreen
 import io.github.wizard302.wise4chess.feature.learn.LearnScreen
 import io.github.wizard302.wise4chess.feature.more.MoreScreen
 import io.github.wizard302.wise4chess.feature.editor.EditorScreen
+import io.github.wizard302.wise4chess.core.chess.Side
+import io.github.wizard302.wise4chess.feature.play.BotEngine
+import io.github.wizard302.wise4chess.feature.play.BotSetup
 import io.github.wizard302.wise4chess.feature.play.GameScreen
 import io.github.wizard302.wise4chess.feature.play.GameSetup
-import io.github.wizard302.wise4chess.feature.play.LocalGameViewModel
+import io.github.wizard302.wise4chess.feature.play.GameViewModel
 import io.github.wizard302.wise4chess.feature.play.PlayScreen
 import io.github.wizard302.wise4chess.feature.play.TimeControl
 import io.github.wizard302.wise4chess.feature.puzzles.PuzzlesScreen
 import io.github.wizard302.wise4chess.feature.settings.SettingsScreen
 import io.github.wizard302.wise4chess.navigation.AnalysisRoute
 import io.github.wizard302.wise4chess.navigation.EditorRoute
-import io.github.wizard302.wise4chess.navigation.LocalGameRoute
+import io.github.wizard302.wise4chess.navigation.GameRoute
 import io.github.wizard302.wise4chess.navigation.LearnRoute
 import io.github.wizard302.wise4chess.navigation.MoreRoute
 import io.github.wizard302.wise4chess.navigation.PlayRoute
@@ -52,7 +55,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun Wise4ChessApp() {
-    val settingsRepository = (LocalContext.current.applicationContext as Wise4ChessApplication).container.settings
+    val container = (LocalContext.current.applicationContext as Wise4ChessApplication).container
+    val settingsRepository = container.settings
     val settings by settingsRepository.settings.collectAsStateWithLifecycle(initialValue = AppSettings())
     val scope = rememberCoroutineScope()
     val navController = rememberNavController()
@@ -61,14 +65,18 @@ fun Wise4ChessApp() {
     // Games and tools take the whole screen; the bar belongs to the five sections only.
     val onTopLevel = TopLevelDestination.entries.any { currentDestination?.hasRoute(it.route::class) == true }
 
-    fun startLocalGame(setup: GameSetup) {
+    fun startGame(setup: GameSetup) {
         navController.navigate(
-            LocalGameRoute(
+            GameRoute(
                 fen = setup.startFen,
                 chess960 = setup.chess960,
                 minutes = setup.timeControl?.minutes ?: 0,
                 incrementSeconds = setup.timeControl?.incrementSeconds ?: 0,
                 faceToFace = setup.faceToFace,
+                botGame = setup.bot != null,
+                humanIsWhite = setup.bot?.humanSide != Side.BLACK,
+                botElo = setup.bot?.elo ?: 0,
+                botEngine = (setup.bot?.engine ?: BotEngine.STOCKFISH).name,
             ),
         )
     }
@@ -107,8 +115,11 @@ fun Wise4ChessApp() {
                 modifier = Modifier.padding(innerPadding),
             ) {
                 composable<PlayRoute> {
+                    val savedGame by container.savedGame.current.collectAsStateWithLifecycle()
                     PlayScreen(
-                        onStartLocalGame = ::startLocalGame,
+                        savedGame = savedGame,
+                        onResume = { navController.navigate(GameRoute(resume = true)) },
+                        onStartGame = ::startGame,
                         onOpenEditor = { navController.navigate(EditorRoute) },
                     )
                 }
@@ -117,16 +128,52 @@ fun Wise4ChessApp() {
                 composable<AnalysisRoute> { AnalysisScreen() }
                 composable<MoreRoute> { MoreScreen(onOpenSettings = { navController.navigate(SettingsRoute) }) }
 
-                composable<LocalGameRoute> { entry ->
-                    val route = entry.toRoute<LocalGameRoute>()
+                composable<GameRoute> { entry ->
+                    val route = entry.toRoute<GameRoute>()
                     val viewModel = viewModel {
-                        LocalGameViewModel(
+                        // Read once, when the game screen is first created.
+                        val saved = if (route.resume) container.savedGame.current.value else null
+                        val setup = if (saved != null) {
+                            GameSetup(
+                                startFen = saved.startFen,
+                                chess960 = saved.chess960,
+                                timeControl = if (saved.minutes > 0) TimeControl(saved.minutes, saved.incrementSeconds) else null,
+                                faceToFace = saved.faceToFace,
+                                bot = if (saved.botGame) {
+                                    BotSetup(
+                                        if (saved.humanIsWhite) Side.WHITE else Side.BLACK,
+                                        saved.botElo.takeIf { it > 0 },
+                                        botEngineOf(saved.botEngine),
+                                    )
+                                } else {
+                                    null
+                                },
+                            )
+                        } else {
                             GameSetup(
                                 startFen = route.fen,
                                 chess960 = route.chess960,
                                 timeControl = if (route.minutes > 0) TimeControl(route.minutes, route.incrementSeconds) else null,
                                 faceToFace = route.faceToFace,
-                            ),
+                                bot = if (route.botGame) {
+                                    BotSetup(
+                                        if (route.humanIsWhite) Side.WHITE else Side.BLACK,
+                                        route.botElo.takeIf { it > 0 },
+                                        botEngineOf(route.botEngine),
+                                    )
+                                } else {
+                                    null
+                                },
+                            )
+                        }
+                        val opponent = setup.bot?.engine ?: BotEngine.STOCKFISH
+                        GameViewModel(
+                            setup = setup,
+                            launchEngine = container.launcherFor(opponent),
+                            // Advice always comes from Stockfish, whoever the opponent is.
+                            launchAnalysisEngine = if (opponent == BotEngine.STOCKFISH) null else container.launchStockfish,
+                            store = container.savedGame,
+                            restored = saved,
                         )
                     }
                     GameScreen(viewModel, onClose = { navController.popBackStack() })
@@ -134,13 +181,13 @@ fun Wise4ChessApp() {
                 composable<EditorRoute> {
                     EditorScreen(
                         onClose = { navController.popBackStack() },
-                        onPlay = ::startLocalGame,
+                        onPlay = ::startGame,
                     )
                 }
                 composable<SettingsRoute> {
                     SettingsScreen(
                         settings = settings,
-                        onDragPiecesChange = { enabled -> scope.launch { settingsRepository.setDragPieces(enabled) } },
+                        onChange = { changed -> scope.launch { settingsRepository.update(changed) } },
                         onClose = { navController.popBackStack() },
                     )
                 }
@@ -148,3 +195,6 @@ fun Wise4ChessApp() {
         }
     }
 }
+
+/** The engine stored under [name]; anything unknown falls back to Stockfish. */
+private fun botEngineOf(name: String): BotEngine = BotEngine.entries.firstOrNull { it.name == name } ?: BotEngine.STOCKFISH
