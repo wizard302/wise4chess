@@ -31,8 +31,8 @@ android {
         applicationId = "io.github.wizard302.wise4chess"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.0.1"
+        versionCode = 100
+        versionName = "0.1.0"
     }
 
     androidResources {
